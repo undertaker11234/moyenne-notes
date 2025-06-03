@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Diagramme des moyennes pondérées</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f2f2f2; }
+    input, button { padding: 5px; margin: 5px; }
+    .form-section { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 5px #ccc; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>📊 Moyennes pondérées par matière</h1>
+
+  <div class="form-section">
+    <input type="text" id="matiereInput" placeholder="Matière (ex: Maths)" />
+    <input type="number" id="noteInput" placeholder="Note (ex: 15)" />
+    <input type="number" id="coefInput" placeholder="Coef (ex: 2)" />
+    <button onclick="ajouterNote()">Ajouter la note</button>
+  </div>
+
+  <canvas id="chartMoyennes" width="400" height="200"></canvas>
+
+  <script>
+    const matieres = {};
+
+    const ctx = document.getElementById('chartMoyennes').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Moyenne pondérée',
+          data: [],
+          backgroundColor: 'rgba(153, 102, 255, 0.5)',
+          borderColor: 'rgba(153, 102, 255, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true, max: 20 }
+        }
+      }
+    });
+
+    function ajouterNote() {
+      const matiere = document.getElementById('matiereInput').value.trim();
+      const note = parseFloat(document.getElementById('noteInput').value);
+      const coef = parseFloat(document.getElementById('coefInput').value);
+
+      if (!matiere || isNaN(note) || isNaN(coef) || coef <= 0) return;
+
+      if (!matieres[matiere]) matieres[matiere] = [];
+      matieres[matiere].push({ note, coef });
+
+      mettreAJourGraphique();
+      document.getElementById('matiereInput').value = '';
+      document.getElementById('noteInput').value = '';
+      document.getElementById('coefInput').value = '';
+    }
+
+    function mettreAJourGraphique() {
+      const labels = [];
+      const moyennes = [];
+
+      for (const [matiere, notes] of Object.entries(matieres)) {
+        let total = 0;
+        let totalCoef = 0;
+
+        for (const { note, coef } of notes) {
+          total += note * coef;
+          totalCoef += coef;
+        }
+
+        const moyenne = total / totalCoef;
+        labels.push(matiere);
+        moyennes.push(moyenne.toFixed(2));
+      }
+
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = moyennes;
+      chart.update();
+    }
+  </script>
+</body>
+</html>
